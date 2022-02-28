@@ -324,7 +324,7 @@ class InvalidFilterOrSorter(Exception):
 FILTER_FUNCS = {
     "tag": lambda tag: lambda item: tag in _item_user_tags[item.id],
     "rated": lambda _: lambda item: item.id in _item_user_ratings,
-    "contains": lambda s: lambda item: item.text and (s in item.text),
+    "contains": lambda s: lambda item: item.text and (s.lower() in item.text.lower()),
 }
 
 
@@ -355,7 +355,7 @@ SORTER_FUNCS = {
     "recent": lambda _: lambda item: -item.time,
     # It is strange to compare int with floats, but inf is quite useful here...
     "rating": lambda _: lambda item: -_item_user_ratings.get(item.id, float("-inf")),
-    "contains": lambda s: lambda item: 0 if (item.text and (s in item.text)) else 1,
+    "contains": lambda s: lambda item: 0 if (item.text and (s.lower() in item.text.lower())) else 1,
 }
 
 
