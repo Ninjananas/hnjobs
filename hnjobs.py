@@ -1,6 +1,15 @@
 from typing import (
-    List, Optional, Sequence, Dict, Tuple, Any,
-    Generator, ClassVar, Callable, Union, Iterable,
+    List,
+    Optional,
+    Sequence,
+    Dict,
+    Tuple,
+    Any,
+    Generator,
+    ClassVar,
+    Callable,
+    Union,
+    Iterable,
 )
 from enum import Enum
 import os
@@ -46,6 +55,7 @@ if os.name == "posix":
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+
 else:
     print("Sorry, but only posix systems are supported for now")
     exit(1)
@@ -118,6 +128,7 @@ get_item = _get_item_cached if ENABLE_CACHE else _get_item
 class CustomHTMLParser(HTMLParser):
     """An HTML Parser that interprets <br> and <p> tags and replaces
     them with line breaks"""
+
     __slots__ = ("parts",)
     parts: List[str]
 
@@ -128,8 +139,7 @@ class CustomHTMLParser(HTMLParser):
     def get_text(self) -> str:
         return "".join(self.parts)
 
-    def handle_starttag(
-            self, tag: str, attrs: List[Tuple[str, Any]]) -> None:
+    def handle_starttag(self, tag: str, attrs: List[Tuple[str, Any]]) -> None:
         match tag:
             case "br":
                 self.parts.append("\n")
@@ -187,6 +197,7 @@ def command(arg: Union[Callable, str]) -> Callable:
 class UserInterface(object, metaclass=ABCMeta):
     """Abstract class that expands subclasses and transforms them into
     functional (but not necessarily user-friendly) terminal-based interfaces"""
+
     __slots__ = ("_run",)
 
     # str describing tooltips (shortcuts) for user interface commands
@@ -201,15 +212,14 @@ class UserInterface(object, metaclass=ABCMeta):
 
     @staticmethod
     def register_command(
-            dct: Dict[str, Callable],
-            shortcut: str,
-            command: Callable
+        dct: Dict[str, Callable], shortcut: str, command: Callable
     ) -> None:
         if shortcut in dct:
             shortcut = shortcut.swapcase()
         if shortcut in dct:
-            raise Exception(f"Cannot register command {command}"
-                            f" with shortcut {shortcut}")
+            raise Exception(
+                f"Cannot register command {command} with shortcut {shortcut}"
+            )
         dct[shortcut] = command
 
     @classmethod
@@ -305,8 +315,9 @@ class MainInterface(UserInterface):
         if item.by != "whoishiring":
             self.display_now("This does not seem to be a WhoIsHiring post!\n")
             return
-        self.display_now(f"There are {len(item.kids)} comments here,"
-                         " fetch them? [y/n]")
+        self.display_now(
+            f"There are {len(item.kids)} comments here, fetch them? [y/n]"
+        )
 
         while True:
             c = getch()
@@ -337,7 +348,8 @@ class InvalidFilterOrSorter(Exception):
 FILTER_FUNCS = {
     "tag": lambda tag: lambda item: tag in _item_user_tags[item.id],
     "rated": lambda _: lambda item: item.id in _item_user_ratings,
-    "contains": lambda s: lambda item: item.text and (s.lower() in item.text.lower()),
+    "contains": lambda s: lambda item:
+    item.text and (s.lower() in item.text.lower()),
 }
 
 
@@ -364,11 +376,14 @@ def filter_from_str(s: str) -> Callable:
 
 
 SORTER_FUNCS = {
-    "tag": lambda tag: lambda item: 0 if tag in _item_user_tags[item.id] else 1,
+    "tag": lambda tag: lambda item:
+    0 if tag in _item_user_tags[item.id] else 1,
     "recent": lambda _: lambda item: -item.time,
     # It is strange to compare int with floats, but inf is quite useful here...
-    "rating": lambda _: lambda item: -_item_user_ratings.get(item.id, float("-inf")),
-    "contains": lambda s: lambda item: 0 if (item.text and (s.lower() in item.text.lower())) else 1,
+    "rating": lambda _: lambda item:
+    -_item_user_ratings.get(item.id, float("-inf")),
+    "contains": lambda s: lambda item:
+    0 if (item.text and (s.lower() in item.text.lower())) else 1,
 }
 
 
@@ -455,7 +470,9 @@ class SelectorInterface(UserInterface):
         self._summary()
 
     def _get_selected(self) -> List[HNItem]:
-        items: Iterable[HNItem] = filter(lambda item: item.type == ItemType.COMMENT, _item_cache.values())
+        items: Iterable[HNItem] = filter(
+            lambda item: item.type == ItemType.COMMENT, _item_cache.values()
+        )
         for f in self.filters:
             items = filter(filter_from_str(f), items)
         filtered_items: List[HNItem] = list(items)
@@ -624,7 +641,9 @@ def save() -> None:
 
     if PERSISTENT_CACHE:
         to_save["cache"] = dict(
-            (k, v.__dict__) for k, v in _item_cache.items())
+            (k, v.__dict__)
+            for k, v in _item_cache.items()
+        )
 
     json.dump(to_save, open(SAVE_FILE, "w"))
 
@@ -636,19 +655,19 @@ def load() -> None:
     loaded: dict = json.load(open(SAVE_FILE, "r"))
 
     _item_user_tags = defaultdict(
-        list,
-        ((int(k), v) for k, v in loaded["tags"].items())
+        list, ((int(k), v) for k, v in loaded["tags"].items())
     )
 
     _item_user_ratings = dict(
-        (int(k), v) for k, v in loaded["ratings"].items()
+        (int(k), v)
+        for k, v in loaded["ratings"].items()
     )
 
     if ENABLE_CACHE:
         _item_cache = dict(
             (int(k, 10), HNItem(**v))
-            for k, v in
-            loaded.get("cache", {}).items())
+            for k, v in loaded.get("cache", {}).items()
+        )
 
 
 def main() -> None:
