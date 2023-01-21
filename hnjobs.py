@@ -59,6 +59,10 @@ HN_API_BASE_URL: str = "https://hacker-news.firebaseio.com/v0"
 SAVE_FILE: str = "hnjobs.json"
 COLORS: bool = True
 
+##############
+# Hacker news API is described here: https://github.com/HackerNews/API
+##############
+
 
 class ItemType(str, Enum):
     JOB = "job"
@@ -112,6 +116,8 @@ get_item = _get_item_cached if ENABLE_CACHE else _get_item
 
 
 class CustomHTMLParser(HTMLParser):
+    """An HTML Parser that interprets <br> and <p> tags and replaces
+    them with line breaks"""
     __slots__ = ("parts",)
     parts: List[str]
 
@@ -159,6 +165,8 @@ def get_all_kids(base_item: HNItem) -> Generator[HNItem, None, None]:
 
 
 def command(arg: Union[Callable, str]) -> Callable:
+    """A decorator that annotates a Callable with a __shortcut__ attribute
+    which is a 1-character str desribing the key used to run the command"""
     if callable(arg):
         key = arg.__name__[0]
     elif isinstance(arg, str):
@@ -176,9 +184,13 @@ def command(arg: Union[Callable, str]) -> Callable:
 
 
 class UserInterface(object, metaclass=ABCMeta):
+    """Abstract class that expands subclasses and transforms them into
+    functional (but not necessarily user-friendly) terminal-based interfaces"""
     __slots__ = ("_run",)
 
+    # str describing tooltips (shortcuts) for user interface commands
     _tooltips_line: ClassVar[str]
+    # Assigns shortcuts to command functions
     _tooltips_dict: ClassVar[Dict[str, Callable[[], None]]]
     _run: bool
 
