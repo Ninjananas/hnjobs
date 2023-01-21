@@ -455,6 +455,11 @@ class SelectorInterface(UserInterface):
         self.stop()
         ReviewInterface(self._get_selected()).loop()
 
+    @command("R")
+    def quick_review_selected(self) -> None:
+        self.stop()
+        QuickReviewInterface(self._get_selected()).loop()
+
     @command
     def tag_selected(self) -> None:
         tag = input("\nEnter the tag to add to matching items: ")
@@ -521,6 +526,77 @@ class ReviewInterface(UserInterface):
             _item_user_ratings[self.current_item.id] = rating
         except ValueError:
             return
+
+    @command
+    def quit(self) -> None:
+        self.stop()
+
+
+class QuickReviewInterface(UserInterface):
+    __slots__ = "current_index", "items"
+
+    items: List[HNItem]
+    current_index: int
+
+    def __init__(self, items: List[HNItem]):
+        self.items = items
+        if not items:
+            self.stop()
+            return
+        self.current_index = 0
+        super().__init__()
+
+    @property
+    def current_item(self) -> HNItem:
+        return self.items[self.current_index]
+
+    def update_display(self) -> str:
+        item = self.current_item
+        return (
+            f"Item {self.current_index + 1}/{len(self.items)}\n"
+            f"Rating: {_item_user_ratings.get(item.id, '???')}\n"
+            f"Tags: {_item_user_tags[item.id]}\n"
+            "===============================================================\n"
+            f"{html_to_text(item.text)}"
+        )
+
+    @command
+    def next(self) -> None:
+        self.current_index += 1
+        self.current_index = min(len(self.items) - 1, self.current_index)
+
+    @command
+    def previous(self) -> None:
+        self.current_index -= 1
+        self.current_index = max(0, self.current_index)
+
+    @command("t")
+    def add_tags(self) -> None:
+        tags = _item_user_tags[self.current_item.id]
+        new_tags = input("Enter new tags separated by ',':\n").split("'")
+        for tag in new_tags:
+            if tag not in tags:
+                tags.append(tag)
+
+    @command("j")
+    def no_0(self) -> None:
+        _item_user_ratings[self.current_item.id] = 0
+        self.next()
+
+    @command("k")
+    def maybe_no_4(self) -> None:
+        _item_user_ratings[self.current_item.id] = 4
+        self.next()
+
+    @command("l")
+    def maybe_yes_7(self) -> None:
+        _item_user_ratings[self.current_item.id] = 7
+        self.next()
+
+    @command("m")
+    def yes_10(self) -> None:
+        _item_user_ratings[self.current_item.id] = 10
+        self.next()
 
     @command
     def quit(self) -> None:
