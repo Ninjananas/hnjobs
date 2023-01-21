@@ -1,6 +1,6 @@
 from typing import (
     List, Optional, Sequence, Dict, Tuple, Any,
-    Generator, ClassVar, Callable, Union,
+    Generator, ClassVar, Callable, Union, Iterable,
 )
 from enum import Enum
 import os
@@ -16,7 +16,7 @@ try:
 
     _session: requests.Session = requests.Session()
 
-    def get_json(url: str) -> Optional[dict]:
+    def get_json(url: str) -> Optional[Dict[str, Any]]:
         response = _session.get(url)
         if not (200 <= response.status_code < 300):
             return None
@@ -25,7 +25,7 @@ try:
 except ImportError:
     from urllib import request
 
-    def get_json(url: str) -> Optional[dict]:
+    def get_json(url: str) -> Optional[Dict[str, Any]]:
         response = request.urlopen(url)
         if not (200 <= response.status < 300):
             return None
@@ -128,17 +128,18 @@ class CustomHTMLParser(HTMLParser):
     def get_text(self) -> str:
         return "".join(self.parts)
 
-    def handle_starttag(self, tag: str, attrs: List[Tuple[str, Any]]):
+    def handle_starttag(
+            self, tag: str, attrs: List[Tuple[str, Any]]) -> None:
         match tag:
             case "br":
                 self.parts.append("\n")
             case "p":
                 self.parts.append("\n\n")
 
-    def handle_endtag(self, tag: str):
+    def handle_endtag(self, tag: str) -> None:
         pass
 
-    def handle_data(self, data: str):
+    def handle_data(self, data: str) -> None:
         self.parts.append(data)
 
 
@@ -175,7 +176,7 @@ def command(arg: Union[Callable, str]) -> Callable:
         key = arg
 
     def annotate_func(func: Callable) -> Callable:
-        func.__shortcut__ = key
+        func.__shortcut__ = key  # type: ignore
         return func
 
     if callable(arg):
@@ -191,7 +192,7 @@ class UserInterface(object, metaclass=ABCMeta):
     # str describing tooltips (shortcuts) for user interface commands
     _tooltips_line: ClassVar[str]
     # Assigns shortcuts to command functions
-    _tooltips_dict: ClassVar[Dict[str, Callable[[], None]]]
+    _tooltips_dict: ClassVar[Dict[str, Callable[[Any], None]]]
     _run: bool
 
     def __init__(self):
@@ -215,7 +216,7 @@ class UserInterface(object, metaclass=ABCMeta):
     def __init_subclass__(cls, /, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
 
-        ttd = {}
+        ttd: Dict[str, Callable[[Any], None]] = {}
         for attr_name in dir(cls):
             try:
                 attr = getattr(cls, attr_name)
@@ -454,13 +455,13 @@ class SelectorInterface(UserInterface):
         self._summary()
 
     def _get_selected(self) -> List[HNItem]:
-        items = filter(lambda item: item.type == ItemType.COMMENT, _item_cache.values())
+        items: Iterable[HNItem] = filter(lambda item: item.type == ItemType.COMMENT, _item_cache.values())
         for f in self.filters:
             items = filter(filter_from_str(f), items)
-        items = list(items)
+        filtered_items: List[HNItem] = list(items)
         for s in self.sorters[::-1]:
-            items.sort(key=sorter_from_str(s))
-        return items
+            filtered_items.sort(key=sorter_from_str(s))
+        return filtered_items
 
     @command
     def review_selected(self) -> None:
