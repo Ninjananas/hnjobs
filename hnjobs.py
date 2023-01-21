@@ -101,7 +101,7 @@ class HNItem(object):
     parts: Optional[List[int]] = None
 
 
-def _get_item(id_: int) -> Optional[HNItem]:
+def get_item_no_cache(id_: int) -> Optional[HNItem]:
     dict_item = get_json(HN_API_BASE_URL + f"/item/{id_}.json")
     if dict_item is None:
         return None
@@ -111,18 +111,18 @@ def _get_item(id_: int) -> Optional[HNItem]:
 _item_cache: Dict[int, HNItem] = {}
 
 
-def _get_item_cached(id_: int) -> Optional[HNItem]:
+def get_item_cached(id_: int) -> Optional[HNItem]:
     if (item := _item_cache.get(id_, None)) is not None:
         return item
 
-    item = _get_item(id_)
+    item = get_item_no_cache(id_)
     if item is not None:
         _item_cache[id_] = item
 
     return item
 
 
-get_item = _get_item_cached if ENABLE_CACHE else _get_item
+get_item = get_item_cached if ENABLE_CACHE else get_item_no_cache
 
 
 class CustomHTMLParser(HTMLParser):
@@ -308,7 +308,9 @@ class MainInterface(UserInterface):
             self.display_now("Bad link or id")
             return
         self.display_now("Fetching...")
-        item = get_item(id_)
+        # Do not use item cache for whoishiring root post, so we can get new
+        # posts if there are some
+        item = get_item_no_cache(id_)
         if not item:
             self.display_now("Could not fetch HN post!\n")
             return
