@@ -331,9 +331,9 @@ class MainInterface(UserInterface):
         n = 0
         self.display_now(f"fetching {total} items...")
         for id_ in item.kids:
-            self.display_now(f"{n}/{total} comments fetched...")
             n += 1
             get_item(id_)
+            self.display_now(f"{n}/{total} comments fetched...")
         self.display += "\ndone."
 
     @command
