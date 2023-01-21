@@ -643,7 +643,7 @@ def load() -> None:
         (int(k), v) for k, v in loaded["ratings"].items()
     )
 
-    if PERSISTENT_CACHE:
+    if ENABLE_CACHE:
         _item_cache = dict(
             (int(k, 10), HNItem(**v))
             for k, v in
