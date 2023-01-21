@@ -445,7 +445,11 @@ class SelectorInterface(UserInterface):
     @command("f")
     def update_filters(self) -> None:
         new_filters_str = input("\nEnter new filters separated with ','\n")
-        new_filters = new_filters_str.replace(" ", "").split(",")
+        if new_filters_str == "":
+            new_filters = []
+        else:
+            new_filters = new_filters_str.replace(" ", "").split(",")
+
         for f in new_filters:
             try:
                 filter_from_str(f)
@@ -458,7 +462,10 @@ class SelectorInterface(UserInterface):
     @command("s")
     def update_sorters(self) -> None:
         new_sorters_str = input("\nEnter new sorters separated with ','\n")
-        new_sorters = new_sorters_str.replace(" ", "").split(",")
+        if new_sorters_str == "":
+            new_sorters = []
+        else:
+            new_sorters = new_sorters_str.replace(" ", "").split(",")
         for s in new_sorters:
             try:
                 sorter_from_str(s)
