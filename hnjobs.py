@@ -60,14 +60,11 @@ else:
     print("Sorry, but only posix systems are supported for now")
     exit(1)
 
-############################################################
 
-
-ENABLE_CACHE: bool = True  # Can't be disabled, will break things
 PERSISTENT_CACHE: bool = True  # Everything is lost upon restart if False
 HN_API_BASE_URL: str = "https://hacker-news.firebaseio.com/v0"
 SAVE_FILE: str = "hnjobs.json"
-COLORS: bool = True
+
 
 ##############
 # Hacker news API is described here: https://github.com/HackerNews/API
@@ -122,7 +119,7 @@ def get_item_cached(id_: int) -> Optional[HNItem]:
     return item
 
 
-get_item = get_item_cached if ENABLE_CACHE else get_item_no_cache
+get_item = get_item_cached
 
 
 class CustomHTMLParser(HTMLParser):
@@ -665,11 +662,10 @@ def load() -> None:
         for k, v in loaded["ratings"].items()
     )
 
-    if ENABLE_CACHE:
-        _item_cache = dict(
-            (int(k, 10), HNItem(**v))
-            for k, v in loaded.get("cache", {}).items()
-        )
+    _item_cache = dict(
+        (int(k, 10), HNItem(**v))
+        for k, v in loaded.get("cache", {}).items()
+    )
 
 
 def main() -> None:
