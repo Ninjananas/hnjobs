@@ -18,6 +18,7 @@ from html.parser import HTMLParser
 from collections import defaultdict
 import json
 from abc import ABCMeta, abstractmethod
+import concurrent.futures
 
 
 try:
@@ -327,12 +328,14 @@ class MainInterface(UserInterface):
             self.display += "\nplease enter y or n"
             self.refresh()
         total = len(item.kids)
-        n = 0
         self.display_now(f"fetching {total} items...")
-        for id_ in item.kids:
-            n += 1
-            get_item(id_)
-            self.display_now(f"{n}/{total} comments fetched...")
+
+        n = 0
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(32, os.cpu_count() * 5)) as executor:
+            for future in executor.map(get_item, item.kids):
+                n += 1
+                self.display_now(f"{n}/{total} comments fetched")
         self.display += "\ndone."
 
     @command

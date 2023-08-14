@@ -19,5 +19,4 @@ Very little effort has been put in the UX of this script, you've been warned!
 
 
 ## Planned features
-- Faster comments fetching with asynchronous requests
 - Cancel any running command using keyboard interrupt
